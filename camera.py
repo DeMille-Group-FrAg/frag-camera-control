@@ -3,6 +3,61 @@ import traceback
 
 import pco
 
+import vmbpy
+
+class Alvium:
+    """Interface to Allied Vision's Alvium cameras, using the Vimba X SDK."""
+
+    def __init__(self, parent, camera_id):
+        self.parent = parent
+
+        with vmbpy.VmbSystem.get_instance() as vmb:
+            self.cam = vmb.get_camera_by_id(camera_id)
+
+            with self.cam:
+                self.image_shape = {"xmax": self.cam.Width.get(), "ymax": self.cam.Height.get()}
+                self.binning = {"horizontal": self.cam.BinningHorizontal.get(), "vertical": self.cam.BinningVertical.get()}
+
+        self.trigger_mode = "software"
+        self.sensor_format = ""
+
+    def set_sensor_format(self, arg):
+        print(f"Set sensor format {arg}")
+
+    def set_clock_rate(self, arg):
+        print(f"Set clock rate {arg}")
+
+    # conversion factor, which is 1/gain or number of electrons/count
+    def set_conv_factor(self, arg):
+        print(f"Set conv factor {arg}")
+
+    def set_trigger_mode(self, text, checked):
+        print(f"Set trigger mode {text}, {checked}")
+
+    def set_expo_time(self, expo_time):
+        print(f"Set expo time {expo_time}")
+
+    def set_image_shape(self):
+        print("Set image shape")
+
+    def set_binning(self, bin_h, bin_v):
+        print(f"Set binning {bin_h}, {bin_v}")
+
+    def num_images_available(self):
+        return 0
+
+    def software_trigger(self):
+        print("Software trigger")
+
+    def stop(self):
+        print("Stop")
+
+    def read_latest_image(self):
+        return [[]]
+
+    def close(self):
+        print("Close")
+
 # the class that handles camera interface (except taking images) and configuration
 class pixelfly:
     def __init__(self, parent):

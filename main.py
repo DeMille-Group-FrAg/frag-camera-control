@@ -17,7 +17,7 @@ import struct
 from collections import deque
 from PyQt5.QtGui import QIcon
 
-from camera import pixelfly
+from camera import Alvium
 from widgets import NewSpinBox, NewDoubleSpinBox, NewComboBox, Scrollarea, imageWidget
 
 window_icon_name = 'John_Doyle.ico'
@@ -1514,7 +1514,7 @@ class CameraGUI(qt.QMainWindow):
         self.defaults.read('defaults.ini')
 
         # instantiate other classes
-        self.device = pixelfly(self)
+        self.device = Alvium(self, "DEV_1AB22C05DB0C")
         self.control = Control(self)
         self.image_win = ImageWin(self)
 
