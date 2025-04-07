@@ -186,8 +186,7 @@ class CamThread(PyQt5.QtCore.QThread):
         elif self.parent.control.control_mode == "scan":
             self.signal_count_dict = {}
 
-        self.parent.device.cam.record(number_of_images=4, mode='ring buffer')
-        # number_of_images is buffer size in ring buffer mode, and has to be at least 4
+        self.parent.device.set_record_mode()
 
         self.scan_config = self.parent.control.scan_config
         self.ave_bkg = None
@@ -197,21 +196,21 @@ class CamThread(PyQt5.QtCore.QThread):
     def run(self):
         while self.counter < self.counter_limit and self.parent.control.active:
             if self.parent.device.trigger_mode == "software":
-                self.parent.device.cam.sdk.force_trigger() # software-ly trigger the camera
+                self.parent.device.software_trigger() # software-ly trigger the camera
                 time.sleep(0.5)
             print(self.counter)
             while self.parent.control.active:
                 # wait until a new image is available,
                 # this step will block the thread, so it can;t be in the main thread
-                if self.parent.device.cam.rec.get_status()['dwProcImgCount'] > self.counter:
-                    print(self.parent.device.cam.rec.get_status()['dwProcImgCount'])
+                if self.parent.device.num_images_available() > self.counter:
+                    print(self.parent.device.num_images_available())
                     print('yes')
                     break
                 time.sleep(0.001)
             
             if self.parent.control.active:
                 print('made it!')
-                image, meta = self.parent.device.cam.image(image_index=0xFFFFFFFF) # readout the lastest image
+                image, meta = self.parent.device.read_latest_image()
                 image_type = self.image_order[self.counter%2] # odd-numbered image is signal, even-numbered image is background
                 # image is in "unit16" data type, althought it only has 14 non-zero bits at most
                 # convert the image data type to float, to avoid overflow
@@ -298,7 +297,7 @@ class CamThread(PyQt5.QtCore.QThread):
                 logging.info(f"image {self.counter}: "+"{:.5f} s".format(time.time()-self.last_time))
 
         # stop the camera after taking required number of images.
-        self.parent.device.cam.stop()
+        self.parent.device.stop()
 
 # the class that handles camera interface (except taking images) and configuration
 class pixelfly:
@@ -365,6 +364,24 @@ class pixelfly:
         format_str = self.sensor_format + " absolute_"
         self.image_shape = {"xmax": int(self.parent.defaults["sensor_format"].getint(format_str+"xmax")/self.binning["horizontal"]),
                             "ymax": int(self.parent.defaults["sensor_format"].getint(format_str+"ymax")/self.binning["vertical"])}
+
+    def num_images_available(self):
+        return self.cam.rec.get_status()["dwProcImgCount"]
+
+    def software_trigger(self):
+        self.cam.sdk.force_trigger()
+
+    def set_record_mode(self):
+        self.cam.record(number_of_images=4, mode="ring buffer") # number_of_images is buffer size in ring buffer mode, and has to be at least 4
+
+    def stop(self):
+        self.cam.stop()
+
+    def read_latest_image(self):
+        return self.cam.image(image_index=0xFFFFFFFF)
+
+    def close(self):
+        self.cam.close()
 
 # the class that places elements in UI and handles data processing
 class Control(Scrollarea):
@@ -1618,6 +1635,9 @@ class CameraGUI(qt.QMainWindow):
             else:
                 event.ignore()
 
+    def close(self):
+        self.device.close()
+
 
 if __name__ == '__main__':
     app = qt.QApplication(sys.argv)
@@ -1631,7 +1651,7 @@ if __name__ == '__main__':
     try:
         app.exec_()
         # make sure the camera is closed after the program exits
-        main_window.device.cam.close()
+        main_window.close()
         sys.exit(0)
     except SystemExit:
         print("\nApp is closing...")
