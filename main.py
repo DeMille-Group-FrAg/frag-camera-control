@@ -186,8 +186,6 @@ class CamThread(PyQt5.QtCore.QThread):
         elif self.parent.control.control_mode == "scan":
             self.signal_count_dict = {}
 
-        self.parent.device.set_record_mode()
-
         self.scan_config = self.parent.control.scan_config
         self.ave_bkg = None
         self.bkg_counter = 0
@@ -322,6 +320,7 @@ class pixelfly:
         self.set_binning(self.parent.defaults["binning"].getint("horizontal_default"),
                         self.parent.defaults["binning"].getint("vertical_default"))
         self.set_image_shape()
+        self.set_record_mode()
 
     def set_sensor_format(self, arg):
         self.sensor_format = arg
