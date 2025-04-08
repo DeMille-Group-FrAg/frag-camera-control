@@ -29,9 +29,6 @@ class Alvium:
     def set_sensor_format(self, arg):
         print(f"Set sensor format {arg}")
 
-    def set_clock_rate(self, arg):
-        print(f"Set clock rate {arg}")
-
     # conversion factor, which is 1/gain or number of electrons/count
     def set_conv_factor(self, arg):
         print(f"Set conv factor {arg}")

@@ -588,17 +588,6 @@ class Control(Scrollarea):
         self.sensor_format_cb.currentTextChanged[str].connect(lambda val: self.set_sensor_format(val))
         cam_ctrl_frame.addRow("Sensor format:", self.sensor_format_cb)
 
-        # set clock rate
-        self.clock_rate_cb = NewComboBox()
-        self.clock_rate_cb.setMaximumWidth(200)
-        self.clock_rate_cb.setMaximumHeight(20)
-        op = [x.strip() for x in self.parent.defaults["clock_rate"]["options"].split(',')]
-        self.clock_rate_cb.addItems(op)
-        default = self.parent.defaults["clock_rate"]["default"]
-        self.clock_rate_cb.setCurrentText(default)
-        self.clock_rate_cb.currentTextChanged[str].connect(lambda val: self.parent.device.set_clock_rate(val))
-        cam_ctrl_frame.addRow("Clock rate:", self.clock_rate_cb)
-
         # set conversion factor
         self.conv_factor_cb = NewComboBox()
         self.conv_factor_cb.setMaximumWidth(200)
@@ -1180,7 +1169,6 @@ class Control(Scrollarea):
         
         config["camera_control"] = {}
         config["camera_control"]["sensor_format"] = self.sensor_format_cb.currentText()
-        config["camera_control"]["clock_rate"] = self.clock_rate_cb.currentText()
         config["camera_control"]["conversion_factor"] = self.conv_factor_cb.currentText()
         for i in self.trig_mode_rblist:
             if i.isChecked():
@@ -1242,7 +1230,6 @@ class Control(Scrollarea):
         self.sensor_format_cb.setCurrentText(config["camera_control"]["sensor_format"])
         # the combobox emits 'currentTextChanged' signal, and its connected function will be called
 
-        self.clock_rate_cb.setCurrentText(config["camera_control"]["clock_rate"])
         self.conv_factor_cb.setCurrentText(config["camera_control"]["conversion_factor"])
         for i in self.trig_mode_rblist:
             if i.text() == config["camera_control"]["trigger_mode"]:
