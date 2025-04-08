@@ -361,7 +361,7 @@ class Control(Scrollarea):
         self.record_bt = qt.QPushButton("Record")
         self.record_bt.clicked[bool].connect(lambda val, mode="record": self.start(mode))
         record_frame.addWidget(self.record_bt, 0, 0)
-        self.record_bt.setEnabled(False)
+        self.record_bt.setEnabled(True)
 
         self.scan_bt = qt.QPushButton("Scan")
         self.scan_bt.clicked[bool].connect(lambda val, mode="scan": self.start(mode))
