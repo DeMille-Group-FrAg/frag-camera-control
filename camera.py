@@ -18,6 +18,11 @@ class Alvium:
                 self.image_shape = {"xmax": self.cam.Width.get(), "ymax": self.cam.Height.get()}
                 self.binning = {"horizontal": self.cam.BinningHorizontal.get(), "vertical": self.cam.BinningVertical.get()}
 
+                self.cam.AcquisitionMode = "SingleFrame"
+                self.cam.TriggerMode = "On"
+                self.cam.TriggerSelector = "FrameStart"
+                self.cam.TriggerSource = "Software"
+
         self.trigger_mode = "software"
         self.sensor_format = ""
 
@@ -32,7 +37,12 @@ class Alvium:
         print(f"Set conv factor {arg}")
 
     def set_trigger_mode(self, text, checked):
-        print(f"Set trigger mode {text}, {checked}")
+        if checked:
+            self.trigger_mode = text
+            if text == "software":
+                self.cam.TriggerMode = "Software"
+            elif text == "external TTL":
+                self.cam.TriggerMode = "Line0"
 
     def set_expo_time(self, expo_time):
         with vmbpy.VmbSystem.get_instance(), self.cam:
