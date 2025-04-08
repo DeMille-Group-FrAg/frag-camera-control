@@ -15,7 +15,7 @@ class Alvium:
             self.cam = vmb.get_camera_by_id(camera_id)
 
             with self.cam:
-                self.image_shape = {"xmax": self.cam.Width.get(), "ymax": self.cam.Height.get()}
+                self.get_image_shape()
                 self.binning = {"horizontal": self.cam.BinningHorizontal.get(), "vertical": self.cam.BinningVertical.get()}
 
                 self.cam.AcquisitionMode = "SingleFrame"
@@ -48,11 +48,19 @@ class Alvium:
         with vmbpy.VmbSystem.get_instance(), self.cam:
             self.cam.ExposureTime.set(expo_time * 1e6)
 
-    def set_image_shape(self):
-        print("Set image shape")
+    def get_image_shape(self):
+        with vmbpy.VmbSystem.get_instance(), self.cam:
+            self.image_shape = {"xmax": self.cam.Width.get(), "ymax": self.cam.Height.get()}
 
     def set_binning(self, bin_h, bin_v):
-        print(f"Set binning {bin_h}, {bin_v}")
+        if not bin_h in range(1, 9) and bin_v in range(1, 9):
+            raise ValueError(f"Binning must be between 1 and 8, was ({bin_h}, {bin_v})")
+
+        with vmbpy.VmbSystem.get_instance(), self.cam:
+            self.cam.BinningHorizontal.set(bin_h)
+            self.cam.BinningVertical.set(bin_v)
+
+        self.get_image_shape()
 
     def num_images_available(self):
         return 0

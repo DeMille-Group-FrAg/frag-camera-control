@@ -1086,19 +1086,17 @@ class Control(Scrollarea):
         self.parent.device.set_expo_time(t)
 
     def set_binning(self, text, bin_h, bin_v):
+        self.parent.device.set_binning(bin_h, bin_v)
+
         # set bounds for ROI spinboxes
-        format_str = self.parent.device.sensor_format + " absolute_"
         if text == "hori":
-            x_max = (self.parent.defaults["sensor_format"].getint(format_str+"xmax"))/int(bin_h)
+            x_max = self.parent.device.image_shape["xmax"]
             self.x_max_sb.setMaximum(int(x_max))
         elif text == "vert":
-            y_max = (self.parent.defaults["sensor_format"].getint(format_str+"ymax"))/int(bin_v)
+            y_max = self.parent.device.image_shape["ymax"]
             self.y_max_sb.setMaximum(int(y_max))
         else:
             logging.warning("Binning type not supported.")
-
-        self.parent.device.set_binning(bin_h, bin_v)
-        self.parent.device.set_image_shape()
 
         # set boundaries for in image ROI selections
         for key, roi in self.parent.image_win.img_roi_dict.items():
