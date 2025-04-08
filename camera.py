@@ -35,7 +35,8 @@ class Alvium:
         print(f"Set trigger mode {text}, {checked}")
 
     def set_expo_time(self, expo_time):
-        print(f"Set expo time {expo_time}")
+        with vmbpy.VmbSystem.get_instance(), self.cam:
+            self.cam.ExposureTime.set(expo_time * 1e6)
 
     def set_image_shape(self):
         print("Set image shape")
