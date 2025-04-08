@@ -750,6 +750,8 @@ class Control(Scrollarea):
         if self.img_save:
             # file name of the hdf file we save image to
             self.hdf_filename = self.parent.defaults["image_save"]["file_name"] + "_" + time.strftime("%Y%m%d") + ".hdf"
+
+            os.makedirs(os.path.dirname(self.hdf_filename), exist_ok=True)
             with h5py.File(self.hdf_filename, "a") as hdf_file:
                 self.hdf_group_name = self.run_name_le.text()+"_"+time.strftime("%Y%m%d_%H%M%S")
                 hdf_file.create_group(self.hdf_group_name)
