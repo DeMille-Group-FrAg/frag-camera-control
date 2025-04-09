@@ -190,111 +190,109 @@ class CamThread(PyQt5.QtCore.QThread):
         self.last_time = time.time()
 
     def run(self):
-        while self.counter < self.counter_limit and self.parent.control.active:
-            if self.parent.device.trigger_mode == "software":
-                self.parent.device.software_trigger() # software-ly trigger the camera
-                time.sleep(0.5)
+        with self.parent.device.start():
+            while self.counter < self.counter_limit and self.parent.control.active:
+                if self.parent.device.trigger_mode == "software":
+                    self.parent.device.software_trigger() # software-ly trigger the camera
+                    time.sleep(0.5)
 
-            print(self.counter)
-            while self.parent.control.active:
-                # wait until a new image is available,
-                # this step will block the thread, so it can;t be in the main thread
-                if self.parent.device.num_images_available() > 0:
-                    print(self.parent.device.num_images_available())
-                    print('yes')
-                    break
-                time.sleep(0.001)
-            
-            if self.parent.control.active:
-                print('made it!')
-                image = self.parent.device.read_image()
-                image_type = self.image_order[self.counter%2] # odd-numbered image is signal, even-numbered image is background
-                # image is in "unit16" data type, althought it only has 14 non-zero bits at most
-                # convert the image data type to float, to avoid overflow
-                print(image_type)
-                image = np.flip(image.T, 1).astype("float")
-                xstart = int(image.shape[0]/2 - self.parent.device.image_shape['xmax']/2)
-                ystart = int(image.shape[1]/2 - self.parent.device.image_shape['ymax']/2)
-                image = image[xstart : xstart+self.parent.device.image_shape['xmax'],
-                                ystart : ystart+self.parent.device.image_shape['ymax']]
+                print(self.counter)
+                while self.parent.control.active:
+                    # wait until a new image is available,
+                    # this step will block the thread, so it can;t be in the main thread
+                    if self.parent.device.num_images_available() > 0:
+                        print(self.parent.device.num_images_available())
+                        print('yes')
+                        break
+                    time.sleep(0.001)
 
-                if image_type == "background":
-                    self.image_bg = image
-                    self.img_dict["type"] = "background"
-                    self.img_dict["counter"] = self.counter
-                    self.img_dict["image"] = image
-                    print('Taking bkg')
+                if self.parent.control.active:
+                    print('made it!')
+                    image = self.parent.device.read_image()
+                    image_type = self.image_order[self.counter%2] # odd-numbered image is signal, even-numbered image is background
+                    # image is in "unit16" data type, althought it only has 14 non-zero bits at most
+                    # convert the image data type to float, to avoid overflow
+                    print(image_type)
+                    image = np.flip(image.T, 1).astype("float")
+                    xstart = int(image.shape[0]/2 - self.parent.device.image_shape['xmax']/2)
+                    ystart = int(image.shape[1]/2 - self.parent.device.image_shape['ymax']/2)
+                    image = image[xstart : xstart+self.parent.device.image_shape['xmax'],
+                                    ystart : ystart+self.parent.device.image_shape['ymax']]
 
-                elif image_type == "signal":
-                    self.image_signal = image
-                    self.img_dict["type"] = "signal"
-                    self.img_dict["counter"] = self.counter
-                    self.img_dict["image"] = image
-                    
-                else:
-                    logging.warning("Measurement type not supported.")
-                    return
-                
-                num = int(self.counter/len(self.image_order)+1) #num is number of post-proceed image (ie signal - background)
-                if self.parent.control.control_mode == "scan":
-                    # value of the scan parameter
-                    scan_param = self.parent.control.scan_config[f"scan_value_{num-1}"][self.parent.control.scan_elem_name]
-                    self.img_dict["scan_param"] = scan_param
-                                                       
-                if self.counter%2 == 1: #checking to see if this is the second image taken
-                    if self.parent.control.meas_mode == "fluorescence": 
-                        image_post = self.image_signal - self.image_bg
-                        image_post_roi = image_post[self.parent.control.roi["xmin"] : self.parent.control.roi["xmax"],
-                                                        self.parent.control.roi["ymin"] : self.parent.control.roi["ymax"]]
-                   
-                        sc = np.sum(image_post_roi) # signal count 
-                    elif self.parent.control.meas_mode == "absorption":
-                        image_post = np.divide(self.image_signal, self.image_bg)
-                        image_post = -np.log(image_post)                        
-                        image_post_roi = image_post[self.parent.control.roi["xmin"] : self.parent.control.roi["xmax"],
-                                                        self.parent.control.roi["ymin"] : self.parent.control.roi["ymax"]]    
-                        sc = np.sum(image_post_roi)*(self.pixeltomm)**2/self.cross_section # signal count
+                    if image_type == "background":
+                        self.image_bg = image
+                        self.img_dict["type"] = "background"
+                        self.img_dict["counter"] = self.counter
+                        self.img_dict["image"] = image
+                        print('Taking bkg')
+
+                    elif image_type == "signal":
+                        self.image_signal = image
+                        self.img_dict["type"] = "signal"
+                        self.img_dict["counter"] = self.counter
+                        self.img_dict["image"] = image
+
                     else:
                         logging.warning("Measurement type not supported.")
                         return
-                                
-                    #num = int(self.counter/len(self.image_order)+1)
-                    
-                    self.img_dict["num_image"] = num
-                    self.img_dict["image_post"] = image_post
-                    self.img_dict["image_post_roi"] = image_post_roi
-                    self.img_dict["signal_count"] = np.format_float_scientific(sc, precision=4)
-                    self.img_dict["signal_count_raw"] = sc
-                    
-                    if self.parent.control.control_mode == "record":
-                        # a list to save signal count of every single image
-                        self.signal_count_list.append(sc)
-                        # the average image
-                        self.img_ave = np.average(np.array([self.img_ave, self.img_dict["image_post"]]), axis=0, weights=[(num-1)/num, 1/num])
-                        self.img_dict["image_ave"] = self.img_ave
-                        # signal count statistics, mean and error of mean = stand. dev. / sqrt(image number)
-                        self.img_dict["signal_count_ave"] = np.format_float_scientific(np.mean(self.signal_count_list), precision=4)
-                        self.img_dict["signal_count_err"] = np.format_float_scientific(np.std(self.signal_count_list)/np.sqrt(num), precision=4)
-                    elif self.parent.control.control_mode == "scan":
-                        # a dictionary that saves values of scan parameters as keys and a list of signal counts of corresponding images as vals
-                        if scan_param in self.signal_count_dict:
-                            self.signal_count_dict[scan_param] = np.append(self.signal_count_dict[scan_param], sc)
+
+                    num = int(self.counter/len(self.image_order)+1) #num is number of post-proceed image (ie signal - background)
+                    if self.parent.control.control_mode == "scan":
+                        # value of the scan parameter
+                        scan_param = self.parent.control.scan_config[f"scan_value_{num-1}"][self.parent.control.scan_elem_name]
+                        self.img_dict["scan_param"] = scan_param
+
+                    if self.counter%2 == 1: #checking to see if this is the second image taken
+                        if self.parent.control.meas_mode == "fluorescence":
+                            image_post = self.image_signal - self.image_bg
+                            image_post_roi = image_post[self.parent.control.roi["xmin"] : self.parent.control.roi["xmax"],
+                                                            self.parent.control.roi["ymin"] : self.parent.control.roi["ymax"]]
+
+                            sc = np.sum(image_post_roi) # signal count
+                        elif self.parent.control.meas_mode == "absorption":
+                            image_post = np.divide(self.image_signal, self.image_bg)
+                            image_post = -np.log(image_post)
+                            image_post_roi = image_post[self.parent.control.roi["xmin"] : self.parent.control.roi["xmax"],
+                                                            self.parent.control.roi["ymin"] : self.parent.control.roi["ymax"]]
+                            sc = np.sum(image_post_roi)*(self.pixeltomm)**2/self.cross_section # signal count
                         else:
-                            self.signal_count_dict[scan_param] = np.array([sc])
-                        self.img_dict["signal_count_scan"] = self.signal_count_dict
-                        
-                # transfer saved data back to main thread by signal-slot mechanism
-                self.signal.emit(self.img_dict)
-                
-                self.counter += 1   
-                # If I call "update imge" function here to update images in main thread, it sometimes work but sometimes not.
-                # It may be because PyQt is not thread safe. A signal-slot way seemed to be preferred,
-                # e.g. https://stackoverflow.com/questions/54961905/real-time-plotting-using-pyqtgraph-and-threading
+                            logging.warning("Measurement type not supported.")
+                            return
 
-                logging.info(f"image {self.counter}: "+"{:.5f} s".format(time.time()-self.last_time))
+                        #num = int(self.counter/len(self.image_order)+1)
 
-        # stop the camera after taking required number of images.
-        self.parent.device.stop()
+                        self.img_dict["num_image"] = num
+                        self.img_dict["image_post"] = image_post
+                        self.img_dict["image_post_roi"] = image_post_roi
+                        self.img_dict["signal_count"] = np.format_float_scientific(sc, precision=4)
+                        self.img_dict["signal_count_raw"] = sc
+
+                        if self.parent.control.control_mode == "record":
+                            # a list to save signal count of every single image
+                            self.signal_count_list.append(sc)
+                            # the average image
+                            self.img_ave = np.average(np.array([self.img_ave, self.img_dict["image_post"]]), axis=0, weights=[(num-1)/num, 1/num])
+                            self.img_dict["image_ave"] = self.img_ave
+                            # signal count statistics, mean and error of mean = stand. dev. / sqrt(image number)
+                            self.img_dict["signal_count_ave"] = np.format_float_scientific(np.mean(self.signal_count_list), precision=4)
+                            self.img_dict["signal_count_err"] = np.format_float_scientific(np.std(self.signal_count_list)/np.sqrt(num), precision=4)
+                        elif self.parent.control.control_mode == "scan":
+                            # a dictionary that saves values of scan parameters as keys and a list of signal counts of corresponding images as vals
+                            if scan_param in self.signal_count_dict:
+                                self.signal_count_dict[scan_param] = np.append(self.signal_count_dict[scan_param], sc)
+                            else:
+                                self.signal_count_dict[scan_param] = np.array([sc])
+                            self.img_dict["signal_count_scan"] = self.signal_count_dict
+
+                    # transfer saved data back to main thread by signal-slot mechanism
+                    self.signal.emit(self.img_dict)
+
+                    self.counter += 1
+                    # If I call "update imge" function here to update images in main thread, it sometimes work but sometimes not.
+                    # It may be because PyQt is not thread safe. A signal-slot way seemed to be preferred,
+                    # e.g. https://stackoverflow.com/questions/54961905/real-time-plotting-using-pyqtgraph-and-threading
+
+                    logging.info(f"image {self.counter}: "+"{:.5f} s".format(time.time()-self.last_time))
 
 # the class that places elements in UI and handles data processing
 class Control(Scrollarea):

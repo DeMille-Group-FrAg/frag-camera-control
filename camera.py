@@ -1,3 +1,5 @@
+from collections import deque
+from contextlib import ExitStack
 import logging
 import traceback
 
@@ -6,7 +8,20 @@ import pco
 from vmbpy import VmbSystem
 
 class Alvium:
-    """Interface to Allied Vision's Alvium cameras, using the Vimba X SDK."""
+    """
+    Interface to Allied Vision's Alvium cameras, using the Vimba X SDK.
+
+    Due to the supremely irritating structure of the SDK, almost all calls to the camera must be executed inside two
+    with statements, one for the SDK singleton and one for the camera itself. In particular, leaving the camera's
+    context manager block stops image acquisition. This makes it almost impossible to abstract away this implementation
+    detail. Additionally, acquiring the vmbpy singleton is quite slow. Thanks, Allied Vision!
+
+    To deal with this limitation, code that wants to acquire images needs to use the class this way:
+
+    >>> cam = Alvium("Camera ID")
+    >>> with cam.start():
+    >>>     image = cam.read_image()
+    """
 
     def __init__(self, parent, camera_id):
         self.parent = parent
@@ -28,10 +43,19 @@ class Alvium:
                 self.cam.TriggerSelector.set("FrameStart")
                 self.cam.TriggerSource.set("Software")
 
-                self.cam.start_streaming(self.queue_frame)
+    def start(self):
+        # Set up an ExitStack to hold onto the vmbpy.VmbSystem and vmbpy.Camera contexts
+        vmb_contexts = ExitStack()
+        vmb_contexts.enter_context(VmbSystem.get_instance())
+        vmb_contexts.enter_context(self.cam)
+
+        self.cam.start_streaming(self.queue_frame)
+
+        vmb_contexts.callback(self.cam.stop_streaming)
+
+        return vmb_contexts
 
     def queue_frame(self, cam, stream, frame):
-        print("Got frame")
         self.frame_queue.append(frame.as_numpy_ndarray().copy())
         cam.queue_frame(frame)
 
@@ -80,7 +104,6 @@ class Alvium:
             self.cam.stop_streaming()
 
     def read_image(self):
-        print("Reading image")
         if len(self.frame_queue) == 0:
             raise RuntimeError("No images available")
         return self.frame_queue.popleft()
