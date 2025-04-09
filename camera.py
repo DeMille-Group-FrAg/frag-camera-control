@@ -69,11 +69,12 @@ class Alvium:
 
     def set_trigger_mode(self, text, checked):
         if checked:
-            self.trigger_mode = text
-            if text == "software":
-                self.cam.TriggerSource.set("Software")
-            elif text == "external TTL":
-                self.cam.TriggerSource.set("Line0")
+            with VmbSystem.get_instance(), self.cam:
+                self.trigger_mode = text
+                if text == "software":
+                    self.cam.TriggerSource.set("Software")
+                elif text == "external TTL":
+                    self.cam.TriggerSource.set("Line0")
 
     def set_expo_time(self, expo_time):
         with VmbSystem.get_instance(), self.cam:
