@@ -18,10 +18,10 @@ class Alvium:
                 self.get_image_shape()
                 self.binning = {"horizontal": self.cam.BinningHorizontal.get(), "vertical": self.cam.BinningVertical.get()}
 
-                self.cam.AcquisitionMode = "SingleFrame"
-                self.cam.TriggerMode = "On"
-                self.cam.TriggerSelector = "FrameStart"
-                self.cam.TriggerSource = "Software"
+                self.cam.AcquisitionMode.set("SingleFrame")
+                self.cam.TriggerMode.set("On")
+                self.cam.TriggerSelector.set("FrameStart")
+                self.cam.TriggerSource.set("Software")
 
         self.trigger_mode = "software"
         self.sensor_format = ""
@@ -60,7 +60,7 @@ class Alvium:
         self.get_image_shape()
 
     def num_images_available(self):
-        return 0
+        return 1
 
     def software_trigger(self):
         with vmbpy.VmbSystem.get_instance(), self.cam:
@@ -70,7 +70,8 @@ class Alvium:
         print("Stop")
 
     def read_latest_image(self):
-        return [[]]
+        with VmbSystem.get_instance(), self.cam:
+            return self.cam.get_frame().as_numpy_ndarray()
 
     def close(self):
         print("Close")
