@@ -954,9 +954,9 @@ class Control(Scrollarea):
 
                 # display as image in HDFView
                 # https://support.hdfgroup.org/HDF5/doc/ADGuide/ImageSpec.html
-                dset.attrs["CLASS"] = np.string_("IMAGE")
-                dset.attrs["IMAGE_VERSION"] = np.string_("1.2")
-                dset.attrs["IMAGE_SUBCLASS"] = np.string_("IMAGE_GRAYSCALE")
+                dset.attrs["CLASS"] = np.bytes_("IMAGE")
+                dset.attrs["IMAGE_VERSION"] = np.bytes_("1.2")
+                dset.attrs["IMAGE_SUBCLASS"] = np.bytes_("IMAGE_GRAYSCALE")
                 dset.attrs["IMAGE_WHITE_IS_ZERO"] = 0
 
                 if self.gaussian_fit and (img_type == "image"):
