@@ -5,6 +5,7 @@ import traceback
 
 import pco
 
+import numpy as np
 from vmbpy import VmbSystem
 
 class Alvium:
@@ -54,7 +55,9 @@ class Alvium:
         return vmb_contexts
 
     def queue_frame(self, cam, stream, frame):
-        self.frame_queue.append(frame.as_numpy_ndarray().copy())
+        image = frame.as_numpy_ndarray().copy() # vmbpy will reuse the underlying frame object, so copy out the data
+        image = np.squeeze(image) # Remove length-1 axes
+        self.frame_queue.append(image)
         cam.queue_frame(frame)
 
     def set_sensor_format(self, arg):
