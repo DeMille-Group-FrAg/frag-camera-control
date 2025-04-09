@@ -194,11 +194,12 @@ class CamThread(PyQt5.QtCore.QThread):
             if self.parent.device.trigger_mode == "software":
                 self.parent.device.software_trigger() # software-ly trigger the camera
                 time.sleep(0.5)
+
             print(self.counter)
             while self.parent.control.active:
                 # wait until a new image is available,
                 # this step will block the thread, so it can;t be in the main thread
-                if self.parent.device.num_images_available() > self.counter:
+                if self.parent.device.num_images_available() > 0:
                     print(self.parent.device.num_images_available())
                     print('yes')
                     break
@@ -206,7 +207,7 @@ class CamThread(PyQt5.QtCore.QThread):
             
             if self.parent.control.active:
                 print('made it!')
-                image, meta = self.parent.device.read_latest_image()
+                image = self.parent.device.read_image()
                 image_type = self.image_order[self.counter%2] # odd-numbered image is signal, even-numbered image is background
                 # image is in "unit16" data type, althought it only has 14 non-zero bits at most
                 # convert the image data type to float, to avoid overflow

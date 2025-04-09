@@ -11,6 +11,11 @@ class Alvium:
     def __init__(self, parent, camera_id):
         self.parent = parent
 
+        self.trigger_mode = "software"
+        self.sensor_format = ""
+
+        self.frame_queue = deque()
+
         with VmbSystem.get_instance() as vmb:
             self.cam = vmb.get_camera_by_id(camera_id)
 
@@ -18,13 +23,17 @@ class Alvium:
                 self.get_image_shape()
                 self.binning = {"horizontal": self.cam.BinningHorizontal.get(), "vertical": self.cam.BinningVertical.get()}
 
-                self.cam.AcquisitionMode.set("SingleFrame")
+                self.cam.AcquisitionMode.set("Continuous")
                 self.cam.TriggerMode.set("On")
                 self.cam.TriggerSelector.set("FrameStart")
                 self.cam.TriggerSource.set("Software")
 
-        self.trigger_mode = "software"
-        self.sensor_format = ""
+                self.cam.start_streaming(self.queue_frame)
+
+    def queue_frame(self, cam, stream, frame):
+        print("Got frame")
+        self.frame_queue.append(frame.as_numpy_ndarray().copy())
+        cam.queue_frame(frame)
 
     def set_sensor_format(self, arg):
         print(f"Set sensor format {arg}")
@@ -60,18 +69,21 @@ class Alvium:
         self.get_image_shape()
 
     def num_images_available(self):
-        return 1
+        return len(self.frame_queue)
 
     def software_trigger(self):
         with VmbSystem.get_instance(), self.cam:
             self.cam.TriggerSoftware.run()
 
     def stop(self):
-        print("Stop")
-
-    def read_latest_image(self):
         with VmbSystem.get_instance(), self.cam:
-            return self.cam.get_frame().as_numpy_ndarray()
+            self.cam.stop_streaming()
+
+    def read_image(self):
+        print("Reading image")
+        if len(self.frame_queue) == 0:
+            raise RuntimeError("No images available")
+        return self.frame_queue.popleft()
 
     def close(self):
         print("Close")
