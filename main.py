@@ -210,10 +210,9 @@ class CamThread(PyQt5.QtCore.QThread):
                     print('made it!')
                     image = self.parent.device.read_image()
                     image_type = self.image_order[self.counter%2] # odd-numbered image is signal, even-numbered image is background
-                    # image is in "unit16" data type, althought it only has 14 non-zero bits at most
                     # convert the image data type to float, to avoid overflow
                     print(image_type)
-                    image = np.flip(image.T, 1).astype("float")
+                    image = image.astype("float")
                     xstart = int(image.shape[0]/2 - self.parent.device.image_shape['xmax']/2)
                     ystart = int(image.shape[1]/2 - self.parent.device.image_shape['ymax']/2)
                     image = image[xstart : xstart+self.parent.device.image_shape['xmax'],
