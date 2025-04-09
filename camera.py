@@ -20,12 +20,10 @@ class Alvium:
 
     >>> cam = Alvium("Camera ID")
     >>> with cam.start():
-    >>>     image = cam.read_image()
+    ...     image = cam.read_image()
     """
 
-    def __init__(self, parent, camera_id):
-        self.parent = parent
-
+    def __init__(self, camera_id):
         self.trigger_mode = "software"
         self.sensor_format = ""
 
