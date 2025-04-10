@@ -197,13 +197,9 @@ class CamThread(PyQt5.QtCore.QThread):
                     time.sleep(0.5)
 
                 print(self.counter)
-                while self.parent.control.active:
+                while self.parent.device.num_images_available() == 0:
                     # wait until a new image is available,
-                    # this step will block the thread, so it can;t be in the main thread
-                    if self.parent.device.num_images_available() > 0:
-                        print(self.parent.device.num_images_available())
-                        print('yes')
-                        break
+                    # this step will block the thread, so it can't be in the main thread
                     time.sleep(0.001)
 
                 if self.parent.control.active:
