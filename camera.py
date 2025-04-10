@@ -63,13 +63,6 @@ class Alvium:
         self.frame_queue.append(image)
         cam.queue_frame(frame)
 
-    def set_sensor_format(self, arg):
-        print(f"Set sensor format {arg}")
-
-    # conversion factor, which is 1/gain or number of electrons/count
-    def set_conv_factor(self, arg):
-        print(f"Set conv factor {arg}")
-
     def set_trigger_mode(self, text, checked):
         if checked:
             with VmbSystem.get_instance(), self.cam:

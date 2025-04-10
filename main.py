@@ -575,29 +575,6 @@ class Control(Scrollarea):
         self.cam_ctrl_box.setLayout(cam_ctrl_frame)
         self.frame.addWidget(self.cam_ctrl_box)
 
-        # set sensor format
-        self.sensor_format_cb = NewComboBox()
-        self.sensor_format_cb.setToolTip("Customized format doesn't reduce active CCD size, but crops images in software.")
-        self.sensor_format_cb.setMaximumWidth(200)
-        self.sensor_format_cb.setMaximumHeight(20)
-        op = [x.strip() for x in self.parent.defaults["sensor_format"]["options"].split(',')]
-        self.sensor_format_cb.addItems(op)
-        self.sensor_format_cb.setCurrentText(self.parent.device.sensor_format)
-        self.sensor_format_cb.currentTextChanged[str].connect(lambda val: self.set_sensor_format(val))
-        cam_ctrl_frame.addRow("Sensor format:", self.sensor_format_cb)
-
-        # set conversion factor
-        self.conv_factor_cb = NewComboBox()
-        self.conv_factor_cb.setMaximumWidth(200)
-        self.conv_factor_cb.setMaximumHeight(20)
-        self.conv_factor_cb.setToolTip("1/gain, or electrons/count")
-        op = [x.strip() for x in self.parent.defaults["conv_factor"]["options"].split(',')]
-        self.conv_factor_cb.addItems(op)
-        default = self.parent.defaults["conv_factor"]["default"]
-        self.conv_factor_cb.setCurrentText(default)
-        self.conv_factor_cb.currentTextChanged[str].connect(lambda val: self.parent.device.set_conv_factor(val))
-        cam_ctrl_frame.addRow("Conversion factor:", self.conv_factor_cb)
-
         # set trigger mode
         self.trig_mode_rblist = []
         trig_bg = qt.QButtonGroup(self.parent)
@@ -1034,24 +1011,6 @@ class Control(Scrollarea):
     def set_img_save(self, state):
         self.img_save = state
 
-    def set_sensor_format(self, val):
-        # set bounds for ROI spinboxes
-        format_str = val + " absolute_"
-        x_max = (self.parent.defaults["sensor_format"].getint(format_str+"xmax"))/self.parent.device.binning["horizontal"]
-        self.x_max_sb.setMaximum(int(x_max))
-        y_max = (self.parent.defaults["sensor_format"].getint(format_str+"ymax"))/self.parent.device.binning["vertical"]
-        self.y_max_sb.setMaximum(int(y_max))
-        # number in both 'min' and 'max' spinboxes will adjusted automatically
-
-        self.parent.device.set_sensor_format(val)
-        self.parent.device.set_image_shape()
-
-        # set boundaries for in image ROI selections
-        for key, roi in self.parent.image_win.img_roi_dict.items():
-            roi.setBounds(pos=[0,0], size=[self.parent.device.image_shape["xmax"], self.parent.device.image_shape["ymax"]])
-        self.parent.image_win.x_plot_lr.setBounds([0, self.parent.device.image_shape["xmax"]])
-        self.parent.image_win.y_plot_lr.setBounds([0, self.parent.device.image_shape["ymax"]])
-
     def set_expo_time(self, time, unit, change_type):
         unit_num = self.parent.defaults["expo_unit"].getfloat(unit)
         min = self.parent.defaults["expo_time"].getfloat("min")
@@ -1165,8 +1124,6 @@ class Control(Scrollarea):
         config["image_control"]["auto_scale_state_Average_image"] = str(self.parent.image_win.ave_img_auto_scale_state)
         
         config["camera_control"] = {}
-        config["camera_control"]["sensor_format"] = self.sensor_format_cb.currentText()
-        config["camera_control"]["conversion_factor"] = self.conv_factor_cb.currentText()
         for i in self.trig_mode_rblist:
             if i.isChecked():
                 t = i.text()
@@ -1224,10 +1181,6 @@ class Control(Scrollarea):
             self.parent.image_win.auto_scale_chb_dict[name].setChecked(config["image_control"].getboolean(f"auto_scale_state_{name}"))
         self.parent.image_win.ave_img_auto_scale_chb.setChecked(config["image_control"].getboolean("auto_scale_state_Average_image"))
 
-        self.sensor_format_cb.setCurrentText(config["camera_control"]["sensor_format"])
-        # the combobox emits 'currentTextChanged' signal, and its connected function will be called
-
-        self.conv_factor_cb.setCurrentText(config["camera_control"]["conversion_factor"])
         for i in self.trig_mode_rblist:
             if i.text() == config["camera_control"]["trigger_mode"]:
                 i.setChecked(True)
