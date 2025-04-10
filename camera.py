@@ -17,15 +17,17 @@ class Alvium:
     context manager block stops image acquisition. This makes it almost impossible to abstract away this implementation
     detail. Additionally, acquiring the vmbpy singleton is quite slow. Thanks, Allied Vision!
 
-    To deal with this limitation, code that wants to acquire images needs to use the class this way:
+    To deal with this limitation, code that wants to acquire images needs to use the class this way::
 
-    >>> cam = Alvium("Camera ID")
-    >>> with cam.start():
-    ...     image = cam.read_image()
+        cam = Alvium("Camera ID")
+        with cam.start():
+            image = cam.read_image()
     """
 
+    # Horizontal and vertical binning range, px
     BIN_MIN = 1
     BIN_MAX = 8
+    BIN_RANGE = (BIN_MIN, BIN_MAX)
 
     def __init__(self, camera_id):
         self.trigger_mode = "software"

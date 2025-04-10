@@ -618,8 +618,8 @@ class Control(Scrollarea):
         cam_ctrl_frame.addRow("Exposure time:", expo_box)
 
         # set binning
-        self.bin_horizontal = NewSpinBox(range=(self.parent.device.BIN_MIN, self.parent.device.BIN_MAX))
-        self.bin_vertical = NewSpinBox(range=(self.parent.device.BIN_MIN, self.parent.device.BIN_MAX))
+        self.bin_horizontal = NewSpinBox(range=self.parent.device.BIN_RANGE)
+        self.bin_vertical = NewSpinBox(range=self.parent.device.BIN_RANGE)
         self.bin_horizontal.setValue(self.parent.device.binning["horizontal"])
         self.bin_vertical.setValue(self.parent.device.binning["vertical"])
         self.bin_horizontal.valueChanged[int].connect(lambda val, text="hori", cb=self.bin_vertical: self.set_binning(text, val, cb.value()))
