@@ -641,22 +641,19 @@ class Control(Scrollarea):
         cam_ctrl_frame.addRow("Exposure time:", expo_box)
 
         # set binning
-        self.bin_hori_cb = NewComboBox()
-        self.bin_vert_cb = NewComboBox()
-        op = [x.strip() for x in self.parent.defaults["binning"]["options"].split(',')]
-        self.bin_hori_cb.addItems(op)
-        self.bin_vert_cb.addItems(op)
-        self.bin_hori_cb.setCurrentText(str(self.parent.device.binning["horizontal"]))
-        self.bin_vert_cb.setCurrentText(str(self.parent.device.binning["vertical"]))
-        self.bin_hori_cb.currentTextChanged[str].connect(lambda val, text="hori", cb=self.bin_vert_cb: self.set_binning(text, val, cb.currentText()))
-        self.bin_vert_cb.currentTextChanged[str].connect(lambda val, text="vert", cb=self.bin_hori_cb: self.set_binning(text, cb.currentText(), val))
+        self.bin_horizontal = NewSpinBox(range=(self.parent.device.BIN_MIN, self.parent.device.BIN_MAX))
+        self.bin_vertical = NewSpinBox(range=(self.parent.device.BIN_MIN, self.parent.device.BIN_MAX))
+        self.bin_horizontal.setValue(self.parent.device.binning["horizontal"])
+        self.bin_vertical.setValue(self.parent.device.binning["vertical"])
+        self.bin_horizontal.valueChanged[int].connect(lambda val, text="hori", cb=self.bin_vertical: self.set_binning(text, val, cb.value()))
+        self.bin_vertical.valueChanged[int].connect(lambda val, text="vert", cb=self.bin_horizontal: self.set_binning(text, cb.value(), val))
         bin_box = qt.QWidget()
         bin_box.setMaximumWidth(200)
         bin_layout = qt.QHBoxLayout()
         bin_layout.setContentsMargins(0,0,0,0)
         bin_box.setLayout(bin_layout)
-        bin_layout.addWidget(self.bin_hori_cb)
-        bin_layout.addWidget(self.bin_vert_cb)
+        bin_layout.addWidget(self.bin_horizontal)
+        bin_layout.addWidget(self.bin_vertical)
         cam_ctrl_frame.addRow("Binning H x V:", bin_box)
 
     # place gui elements related to TCP connection
@@ -1177,8 +1174,8 @@ class Control(Scrollarea):
         config["camera_control"]["trigger_mode"] = t
         config["camera_control"]["exposure_time"] = str(self.expo_dsb.value())
         config["camera_control"]["exposure_unit"] = self.expo_unit_cb.currentText()
-        config["camera_control"]["binning_horizontal"] = self.bin_hori_cb.currentText()
-        config["camera_control"]["binning_vertical"] = self.bin_vert_cb.currentText()
+        config["camera_control"]["binning_horizontal"] = str(self.bin_horizontal.value())
+        config["camera_control"]["binning_vertical"] = str(self.bin_vertical.value())
 
         config["tcp_control"] = self.parent.defaults["tcp_connection"]
 
@@ -1240,8 +1237,8 @@ class Control(Scrollarea):
         self.expo_unit_cb.setCurrentText(config["camera_control"]["exposure_unit"])
         self.expo_dsb.setValue(config["camera_control"].getfloat("exposure_time"))
 
-        self.bin_hori_cb.setCurrentText(config["camera_control"].get("binning_horizontal"))
-        self.bin_vert_cb.setCurrentText(config["camera_control"].get("binning_vertical"))
+        self.bin_horizontal.setValue(int(config["camera_control"].get("binning_horizontal")))
+        self.bin_vertical.setValue(int(config["camera_control"].get("binning_vertical")))
 
         self.tcp_stop()
         self.parent.defaults["tcp_connection"] = config["tcp_control"]

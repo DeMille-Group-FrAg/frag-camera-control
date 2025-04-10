@@ -24,6 +24,9 @@ class Alvium:
     ...     image = cam.read_image()
     """
 
+    BIN_MIN = 1
+    BIN_MAX = 8
+
     def __init__(self, camera_id):
         self.trigger_mode = "software"
         self.sensor_format = ""
@@ -85,7 +88,7 @@ class Alvium:
             self.image_shape = {"xmax": self.cam.Width.get(), "ymax": self.cam.Height.get()}
 
     def set_binning(self, bin_h, bin_v):
-        if not bin_h in range(1, 9) and bin_v in range(1, 9):
+        if not bin_h in range(self.BIN_MIN, self.BIN_MAX + 1) and bin_v in range(self.BIN_MIN, self.BIN_MAX + 1):
             raise ValueError(f"Binning must be between 1 and 8, was ({bin_h}, {bin_v})")
 
         with VmbSystem.get_instance(), self.cam:
