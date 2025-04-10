@@ -47,6 +47,8 @@ class Alvium:
                 self.cam.TriggerSelector.set("FrameStart")
                 self.cam.TriggerSource.set("Software")
 
+                self.cam.BinningHorizontalMode.set("Sum") # Setting horizontal binning mode also sets vertical binning mode
+
     def start(self):
         # Set up an ExitStack to hold onto the vmbpy.VmbSystem and vmbpy.Camera contexts
         vmb_contexts = ExitStack()
