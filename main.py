@@ -209,10 +209,11 @@ class CamThread(PyQt5.QtCore.QThread):
                     # convert the image data type to float, to avoid overflow
                     print(image_type)
                     image = image.astype("float")
-                    xstart = int(image.shape[0]/2 - self.parent.device.image_shape['xmax']/2)
-                    ystart = int(image.shape[1]/2 - self.parent.device.image_shape['ymax']/2)
-                    image = image[xstart : xstart+self.parent.device.image_shape['xmax'],
-                                    ystart : ystart+self.parent.device.image_shape['ymax']]
+                    # Software ROI - commented out; replace with calls to hardware ROI? (WEC 2025-04-21)
+                    # xstart = int(image.shape[0]/2 - self.parent.device.image_shape['xmax']/2)
+                    # ystart = int(image.shape[1]/2 - self.parent.device.image_shape['ymax']/2)
+                    # image = image[xstart : xstart+self.parent.device.image_shape['xmax'],
+                    #                 ystart : ystart+self.parent.device.image_shape['ymax']]
 
                     if image_type == "background":
                         self.image_bg = image
