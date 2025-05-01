@@ -390,11 +390,11 @@ class Control(Scrollarea):
         record_frame.addWidget(self.signal_count, 2, 1, 1, 2)
 
         # display mean of signal count in real time in "record" mode
-        record_frame.addWidget(qt.QLabel("Singal mean:"), 3, 0, 1, 1)
+        record_frame.addWidget(qt.QLabel("Signal mean:"), 3, 0, 1, 1)
         self.signal_count_mean = qt.QLabel()
         self.signal_count_mean.setText("0")
         self.signal_count_mean.setStyleSheet("QLabel{background-color: gray; font: 20pt}")
-        self.signal_count_mean.setToolTip("Singal after bkg subtraction or OD")
+        self.signal_count_mean.setToolTip("Signal after bkg subtraction or OD")
         record_frame.addWidget(self.signal_count_mean, 3, 1, 1, 2)
 
         # display error of mean of signal count in real time in "record" mode
@@ -402,7 +402,7 @@ class Control(Scrollarea):
         self.signal_count_err_mean = qt.QLabel()
         self.signal_count_err_mean.setText("0")
         self.signal_count_err_mean.setStyleSheet("QLabel{background-color: gray; font: 20pt}")
-        self.signal_count_err_mean.setToolTip("Singal after bkg subtraction or OD")
+        self.signal_count_err_mean.setToolTip("Signal after bkg subtraction or OD")
         record_frame.addWidget(self.signal_count_err_mean, 4, 1, 1, 2)
 
     # place image control gui elements
