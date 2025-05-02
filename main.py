@@ -1434,8 +1434,7 @@ class CameraGUI(qt.QMainWindow):
         time.sleep(0.1) #It appears this sleep is necessary to run on python 3.11.2. Not sure why
         
         self.setWindowIcon(QIcon(window_icon_name))
-        
-        self.setWindowTitle('pco.pixelfly usb (ring buffer)')
+
         self.setStyleSheet("QWidget{font: 10pt;}")
         # self.setStyleSheet("QToolTip{background-color: black; color: white; font: 10pt;}")
         self.app = app
@@ -1444,6 +1443,8 @@ class CameraGUI(qt.QMainWindow):
         # read default settings from a local .ini file
         self.defaults = configparser.ConfigParser()
         self.defaults.read('defaults.ini')
+
+        self.setWindowTitle(f"Alvium - {self.defaults['camera']['id']}")
 
         # instantiate other classes
         self.device = Alvium(self.defaults["camera"]["id"])
