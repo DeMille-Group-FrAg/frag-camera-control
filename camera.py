@@ -6,7 +6,7 @@ import traceback
 import pco
 
 import numpy as np
-from vmbpy import VmbSystem
+from vmbpy import PixelFormat, VmbSystem
 
 class Alvium:
     """
@@ -48,6 +48,8 @@ class Alvium:
                 self.cam.TriggerSource.set("Software")
 
                 self.cam.BinningHorizontalMode.set("Sum") # Setting horizontal binning mode also sets vertical binning mode
+
+                self.cam.set_pixel_format(PixelFormat.Mono12) # Use full bit depth
 
     def start(self):
         # Set up an ExitStack to hold onto the vmbpy.VmbSystem and vmbpy.Camera contexts
