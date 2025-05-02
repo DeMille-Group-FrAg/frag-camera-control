@@ -16,6 +16,7 @@ import selectors
 import struct
 from collections import deque
 from PyQt5.QtGui import QIcon
+import vmbpy
 
 from camera import Alvium
 from widgets import NewSpinBox, NewDoubleSpinBox, NewComboBox, Scrollarea, imageWidget
@@ -1492,11 +1493,16 @@ if __name__ == '__main__':
     # This is for making the window's icon
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("mycompany.myproduct.subproduct.version")
     app.setWindowIcon(QIcon(window_icon_name))
-    
+
     try:
-        app.exec_()
-        # make sure the camera is closed after the program exits
-        main_window.close()
-        sys.exit(0)
+        # All interaction with the camera needs to do within the context manager of both the Vimba SDK and the camera.
+        # Entering the camera context manager is slow as hell, so do it once at the top level of the program. Doing it
+        # this way does mean that other programs (e.g. vimba viewer) are locked out of the camera while this program is
+        # running, but that's a worthwhile tradeoff.
+        with vmbpy.VmbSystem.get_instance(), main_window.device.cam:
+            app.exec_()
+            # make sure the camera is closed after the program exits
+            main_window.close()
+            sys.exit(0)
     except SystemExit:
         print("\nApp is closing...")
