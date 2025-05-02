@@ -1446,7 +1446,7 @@ class CameraGUI(qt.QMainWindow):
         self.defaults.read('defaults.ini')
 
         # instantiate other classes
-        self.device = Alvium("DEV_1AB22C05DB0C")
+        self.device = Alvium(self.defaults["camera"]["id"])
         self.control = Control(self)
         self.image_win = ImageWin(self)
 
