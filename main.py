@@ -1481,9 +1481,6 @@ class CameraGUI(qt.QMainWindow):
             else:
                 event.ignore()
 
-    def close(self):
-        self.device.close()
-
 
 if __name__ == '__main__':
     app = qt.QApplication(sys.argv)
@@ -1501,8 +1498,6 @@ if __name__ == '__main__':
         # running, but that's a worthwhile tradeoff.
         with vmbpy.VmbSystem.get_instance(), main_window.device.cam:
             app.exec_()
-            # make sure the camera is closed after the program exits
-            main_window.close()
             sys.exit(0)
     except SystemExit:
         print("\nApp is closing...")

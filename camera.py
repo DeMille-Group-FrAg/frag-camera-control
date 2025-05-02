@@ -112,9 +112,6 @@ class Alvium:
             raise RuntimeError("No images available")
         return self.frame_queue.popleft()
 
-    def close(self):
-        print("Close")
-
 # the class that handles camera interface (except taking images) and configuration
 class pixelfly:
     def __init__(self, parent):
