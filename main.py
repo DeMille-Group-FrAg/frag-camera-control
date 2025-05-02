@@ -204,7 +204,7 @@ class CamThread(PyQt5.QtCore.QThread):
 
                 if self.parent.control.active:
                     print('made it!')
-                    image = self.parent.device.read_image()
+                    image = self.parent.device.read_image().T
                     image_type = self.image_order[self.counter%2] # odd-numbered image is signal, even-numbered image is background
                     # convert the image data type to float, to avoid overflow
                     print(image_type)
