@@ -152,9 +152,11 @@ class atomnumanalysis:
 
 filepath = "C:/Users/13128/jmd/pixelfly-python-control/saved_images/"
 filename = "images_20240730.hdf"
+filename = "images_20250905.hdf"
 fname = filepath + filename
-gname = "DetuningPowerDependence" + "_20240730_190546"
-detuning = 0 # in MHz
+fname="C:\GitHub Local Repos\alvium-python-control\saved_images\images_20250509.hdf"
+gname = "DetuningPowerDependence" + "_20250509_150220"
+detuning = 19 # in MHz
 
 # calculate and plot temperature, inital rms radius, reduced \chi^2, 1-CDF(\chi^2).
 # indicate uncertainties at "confidence_band" confidence level
