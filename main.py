@@ -21,7 +21,7 @@ import vmbpy
 from camera import Alvium
 from widgets import NewSpinBox, NewDoubleSpinBox, NewComboBox, Scrollarea, imageWidget
 
-window_icon_name = 'John_Doyle.ico'
+window_icon_name = 'FVEY_Rosette.ico'
 
 def gaussian(amp, x_mean, y_mean, x_width, y_width, offset):
     x_width = float(x_width)
@@ -1485,11 +1485,12 @@ class CameraGUI(qt.QMainWindow):
 if __name__ == '__main__':
     app = qt.QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-    main_window = CameraGUI(app)
-
+    
     # This is for making the window's icon
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("mycompany.myproduct.subproduct.version")
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("frag.cameras.alvium")
     app.setWindowIcon(QIcon(window_icon_name))
+
+    main_window = CameraGUI(app)
 
     try:
         # All interaction with the camera needs to do within the context manager of both the Vimba SDK and the camera.
