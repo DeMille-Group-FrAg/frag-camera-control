@@ -1011,11 +1011,11 @@ class Control(Scrollarea):
 
     def set_expo_time(self, time, unit, change_type):
         unit_num = self.parent.defaults["expo_unit"].getfloat(unit)
-        min = self.parent.defaults["expo_time"].getfloat("min")
-        max = self.parent.defaults["expo_time"].getfloat("max")
+        minimum = self.parent.defaults["expo_time"].getfloat("min")
+        maximum = self.parent.defaults["expo_time"].getfloat("max")
         d = self.parent.defaults["expo_time"].getint("decimals")
         if change_type == "unit":
-            self.expo_dsb.setRange(min/unit_num, max/unit_num)
+            self.expo_dsb.setRange(minimum/unit_num, maximum/unit_num)
             self.expo_dsb.setDecimals(int(d+np.log10(unit_num)))
         elif change_type == "time":
             pass
@@ -1024,8 +1024,8 @@ class Control(Scrollarea):
             return
 
         t = time*unit_num
-        t = t if t >= min else min
-        t = t if t <= max else max
+        t = max(t, minimum)
+        t = min(t, maximum)
         self.parent.device.set_expo_time(t)
 
     def set_binning(self, text, bin_h, bin_v):
