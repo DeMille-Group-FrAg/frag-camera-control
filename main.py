@@ -247,7 +247,9 @@ class CamThread(PyQt5.QtCore.QThread):
 
                             sc = np.sum(image_post_roi) # signal count
                         elif self.parent.control.meas_mode == "absorption":
-                            image_post = np.divide(self.image_signal, self.image_bg)
+                            self.image_bg = np.clip(self.image_bg, 1, None)
+                            self.image_signal = np.clip(self.image_signal, 1, None)
+                            image_post = np.divide(self.image_signal, self.image_bg) #avoid divide by zero errors
                             image_post = -np.log(image_post)
                             image_post_roi = image_post[self.parent.control.roi["xmin"] : self.parent.control.roi["xmax"],
                                                             self.parent.control.roi["ymin"] : self.parent.control.roi["ymax"]]

@@ -154,8 +154,8 @@ filepath = "C:/Users/13128/jmd/pixelfly-python-control/saved_images/"
 filename = "images_20240730.hdf"
 filename = "images_20250905.hdf"
 fname = filepath + filename
-fname="C:\GitHub Local Repos\alvium-python-control\saved_images\images_20250509.hdf"
-gname = "DetuningPowerDependence" + "_20250509_150220"
+fname=r"C:\Users\frage\Documents\FrAg Code\alvium-python-control\saved_images\images_20250512.hdf"
+gname = "DetuningPowerDependence" + "_20250512_155408"
 detuning = 19 # in MHz
 
 # calculate and plot temperature, inital rms radius, reduced \chi^2, 1-CDF(\chi^2).
